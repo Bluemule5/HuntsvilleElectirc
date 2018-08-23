@@ -6,6 +6,7 @@ from io import StringIO
 import string
 import csv
 import os
+from datetime import datetime
 
 def convert_pdf_to_txt(path):
     rsrcmgr = PDFResourceManager()
@@ -29,7 +30,6 @@ def convert_pdf_to_txt(path):
     device.close()
     retstr.close()
     return text
-
 
 """
 To get the data we are interested in, the functions below require the pdf to passed to it 
@@ -69,7 +69,15 @@ def get_number_of_days(pdf_string):
             number_of_days = (list_of_words[i+3])
             return number_of_days
 
-directory = "C:\\Users\\bluem\\Documents\\PythonProjects\\electricBillPoC\\test\\"
+#Some of the dates grabbed from Huntsville Electricity bills were in the format of mm/dd/yyyy and others mm/dd/yy, this converts them all to mm/dd/yyyy
+def cleanse_dates(date_string):
+    year_string = date_string.split("/")[2]
+    if len(year_string) == 2 :  
+        year_string = "20" + year_string
+        date_string = date_string[0:6] + year_string
+    return date_string
+
+directory = "C:\\Users\\bluem\\Documents\\PythonProjects\\HuntsvilleElectric\\HuntsvilleElectric\\huntsvilleelectricbills\\"
 
 with open ('test.csv', 'w', newline='') as csvfile: 
     rowwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
@@ -86,8 +94,8 @@ with open ('test.csv', 'w', newline='') as csvfile:
             
             #Pass the text pdf to various functions to obtain data we are looking for
             monthly_kilowatts_used = get_monthly_kilowatt_usage(pdf_text)
-            bill_started = get_bill_start_date(pdf_text)
-            bill_ended = get_bill_end_date(pdf_text)
+            bill_started = cleanse_dates(get_bill_start_date(pdf_text))
+            bill_ended = cleanse_dates(get_bill_end_date(pdf_text))
             number_of_days = get_number_of_days(pdf_text)
 
             #Since the number of days in a billing cycle varies, divide monthly usage by number of days to get kw per day measurement
